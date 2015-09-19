@@ -68,10 +68,11 @@ class DataCalc:
 		return True
 		
 	def get_valid_stop_area(self, car_stop_area):
-		valid_stop_area = car_stop_area
+		len_area_temp = len(car_stop_area)
+		valid_stop_area_temp = car_stop_area
 		invalid_key_list = []
-		for key in valid_stop_area:
-			value = valid_stop_area[key]
+		for key in valid_stop_area_temp:
+			value = valid_stop_area_temp[key]
 			zero_speed_exist = False
 			for value_item in value:
 				speed = int(self.ws['F' + str(value_item)].value)
@@ -81,17 +82,53 @@ class DataCalc:
 				invalid_key_list.append(key)
 		#remove invalid stop area		
 		for k in invalid_key_list:
-			del(valid_stop_area[k])
+			del(valid_stop_area_temp[k])
+		#sort the key from 1 to n
+		valid_stop_area = {}
+		j = 0
+		for i in range(len_area_temp):
+			if i in valid_stop_area_temp:
+				valid_stop_area[j] = valid_stop_area_temp[i]
+				j = j+1
+			
 		return 	valid_stop_area
+
+	def get_stop_lon_lat(self, valid_stop_area):
+		stop_lon_lat = {}
+		for i in range(len(valid_stop_area)):
+			stop_index = valid_stop_area[i][0]
+			lon = float(self.ws['D' + str(stop_index)].value)
+			lat = float(self.ws['E' + str(stop_index)].value)
+			stop_lon_lat[i] = [lon, lat]
+		return stop_lon_lat
+
+	def get_stop_start_time(self, valid_stop_area):
+		stop_time = {}
+		for i in range(len(valid_stop_area)):
+			stop_index = valid_stop_area[i][0]
+			str_time = str(self.ws['I' + str(stop_index)].value)
+			stop_time[i] = str_time
+			
+		return stop_time
 		
+	def get_stop_end_time(self, valid_stop_area):
+		stop_time = {}
+		for i in range(len(valid_stop_area)):
+			length = len(valid_stop_area[i])
+			stop_index = valid_stop_area[i][length-1]
+			str_time = str(self.ws['I' + str(stop_index)].value)
+			stop_time[i] = str_time
+			
+		return stop_time
+	
 	def get_stop_time_interval(self, valid_stop_area):
 		stop_interval_dict = {}
-		for key in valid_stop_area:
-			list_len = len(valid_stop_area[key])
-			start_index = valid_stop_area[key][0]
-			end_index = valid_stop_area[key][list_len-1]
+		for i in range(len(valid_stop_area)):
+			length = len(valid_stop_area[i])
+			start_index = valid_stop_area[i][0]
+			end_index = valid_stop_area[i][length-1]
 			start_time = datetime.strptime(str(self.ws['I' + str(start_index)].value), '%Y-%m-%d %H:%M:%S')
 			end_time = datetime.strptime(str(self.ws['I' + str(end_index)].value), '%Y-%m-%d %H:%M:%S')
-			stop_interval_dict[(end_time-start_time).seconds] = valid_stop_area[key]
+			stop_interval_dict[i] = (end_time-start_time).seconds/60
 		return stop_interval_dict
 	

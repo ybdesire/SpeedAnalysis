@@ -14,8 +14,14 @@ def main():
 	speed_zero_index_list = data_calc_mgr.get_car_stop_point()
 	car_stop_area = data_calc_mgr.get_car_stop_area(speed_zero_index_list)
 	valid_stop_area = data_calc_mgr.get_valid_stop_area(car_stop_area)
-	stop_interval_dict = data_calc_mgr.get_stop_time_interval(valid_stop_area)
-	print(stop_interval_dict)
+	
+	stop_lon_lat = data_calc_mgr.get_stop_lon_lat(valid_stop_area)
+	car_stop_start_time = data_calc_mgr.get_stop_start_time(valid_stop_area)
+	car_stop_end_time  = data_calc_mgr.get_stop_end_time(valid_stop_area)
+	car_stop_time_intervel = data_calc_mgr.get_stop_time_interval(valid_stop_area)
+	
+	#stop_interval_dict = data_calc_mgr.get_stop_time_interval(valid_stop_area)
+	print(car_stop_time_intervel)
 	
 	
 if __name__=='__main__':
