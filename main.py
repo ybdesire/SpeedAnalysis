@@ -20,8 +20,24 @@ def main():
 	car_stop_end_time  = data_calc_mgr.get_stop_end_time(valid_stop_area)
 	car_stop_time_intervel = data_calc_mgr.get_stop_time_interval(valid_stop_area)
 	
+	car_driving_area = data_calc_mgr.get_driving_area(valid_stop_area)
+	driving_area_ave_speed = data_calc_mgr.get_driving_ave_speed(car_driving_area)
+	car_driving_time_stat = data_calc_mgr.get_driving_time_stat(car_driving_area)
+	car_driving_lon_lat = data_calc_mgr.get_driving_lon_lat(car_driving_area)
+	
+	speed_variance_70 = data_calc_mgr.get_speed_variance(car_driving_area, 70)
+	speed_variance_75 = data_calc_mgr.get_speed_variance(car_driving_area, 75)
+	speed_variance_80 = data_calc_mgr.get_speed_variance(car_driving_area, 80)
+	speed_variance_85 = data_calc_mgr.get_speed_variance(car_driving_area, 85)
+	speed_variance_90 = data_calc_mgr.get_speed_variance(car_driving_area, 90)
+	speed_variance_95 = data_calc_mgr.get_speed_variance(car_driving_area, 95)
 	#stop_interval_dict = data_calc_mgr.get_stop_time_interval(valid_stop_area)
-	print(car_stop_time_intervel)
+	print(speed_variance_85)
+	print('\n')
+	print(speed_variance_90)
+	print('\n')
+	print(speed_variance_95)
+	print('\n')
 	
 	
 if __name__=='__main__':

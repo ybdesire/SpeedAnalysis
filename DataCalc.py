@@ -1,6 +1,7 @@
 from CalcDistance import calc_distance
 from openpyxl import load_workbook, Workbook
 from datetime import datetime
+import math
 
 AREA_DIST_THRESHOLD = 0.3 # 0.3KM
 ZERO_SPEED_THRESHOLD = 10 #10KM/H. car stop speed cannot be real 0.
@@ -18,13 +19,21 @@ class DataCalc:
 		return self.column_length
 								
 	def get_car_stop_point(self):#return the row number for those whose speed < ZERO_SPEED_THRESHOLD
-		self.__get_column_length();
+		self.__get_column_length()
 		speed_zero_index_list = []
 		for i in range(self.column_length):
 			if(i>2):
 				current_gps_stat = self.ws['H' + str(i)].value
 				pre_gps_stat = self.ws['H' + str(i-1)].value
-				if(current_gps_stat!='V' and pre_gps_stat!='V'):
+				current_time = datetime.strptime(str(self.ws['I' + str(i)].value), '%Y-%m-%d %H:%M:%S')
+				if(current_gps_stat!='V' and pre_gps_stat!='V' and current_time.year!=1999):
+					current_speed = int(self.ws['F' + str(i)].value)
+					if(current_speed<=ZERO_SPEED_THRESHOLD):
+						speed_zero_index_list.append(i)
+			elif(i==2):
+				current_gps_stat = self.ws['H' + str(i)].value
+				current_time = datetime.strptime(str(self.ws['I' + str(i)].value), '%Y-%m-%d %H:%M:%S')
+				if(current_gps_stat!='V' and current_time.year!=1999):
 					current_speed = int(self.ws['F' + str(i)].value)
 					if(current_speed<=ZERO_SPEED_THRESHOLD):
 						speed_zero_index_list.append(i)
@@ -132,3 +141,92 @@ class DataCalc:
 			stop_interval_dict[i] = (end_time-start_time).seconds/60
 		return stop_interval_dict
 	
+	def get_driving_area(self, valid_stop_area):
+		self.__get_column_length()
+		driving_area = {}
+		j = 0
+		for i in range(len(valid_stop_area)+1):
+			if(i==0):
+				car_stop_start_index = valid_stop_area[i][0]
+				if(car_stop_start_index>2):
+					car_driving_start_index = 2
+					car_driving_end_index = car_stop_start_index - 1
+				else:
+					continue
+			elif(i==len(valid_stop_area)):
+				length_pre = len(valid_stop_area[i-1])
+				car_stop_end_index = valid_stop_area[i-1][length_pre-1]
+				if(car_stop_end_index<self.column_length-1):
+					car_driving_start_index = car_stop_end_index + 1
+				else:
+					car_driving_start_index = car_stop_end_index
+				car_driving_end_index = self.column_length
+			else:
+				length_pre = len(valid_stop_area[i-1])
+				car_driving_start_index = valid_stop_area[i-1][length_pre-1] + 1
+				car_driving_end_index = valid_stop_area[i][0] - 1
+			driving_area[j] = [car_driving_start_index, car_driving_end_index]
+			j = j+1
+		return driving_area
+	
+	def __is_valid_data(self, index):
+		gps_stat = self.ws['H' + str(index)].value
+		data_time = datetime.strptime(str(self.ws['I' + str(index)].value), '%Y-%m-%d %H:%M:%S')
+		if(index>1 and gps_stat!='V' and data_time.year!=1999):
+			return True
+		else:
+			return False
+
+	def get_driving_ave_speed(self, driving_area):
+		driving_area_ave_speed = {}
+		for i in range(len(driving_area)):
+			j = driving_area[i][0]
+			speed_sum = 0
+			count = 0
+			while(j<=driving_area[i][1]):
+				if(self.__is_valid_data(j)):
+					speed_sum = speed_sum + int(self.ws['F' + str(j)].value)
+					count = count + 1
+				j = j+1
+			driving_area_ave_speed[i] = speed_sum/count
+		return driving_area_ave_speed
+	
+	def get_driving_time_stat(self, driving_area):
+		driving_area_time = {}
+		for i in range(len(driving_area)):
+			length = len(driving_area[i])
+			start_index = driving_area[i][0]
+			end_index = driving_area[i][length-1]
+			start_time = str(self.ws['I' + str(start_index)].value)			
+			end_time = str(self.ws['I' + str(end_index)].value)
+			interval = (datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')-datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')).seconds/60
+			driving_area_time[i] = [start_time, end_time, interval]
+		return driving_area_time
+		
+	def get_driving_lon_lat(self, driving_area):
+		driving_lon_lat = {}
+		for i in range(len(driving_area)):
+			length = len(driving_area[i])
+			start_index = driving_area[i][0]
+			end_index = driving_area[i][length-1]
+			lon_start = float(self.ws['D' + str(start_index)].value)
+			lat_start = float(self.ws['E' + str(start_index)].value)
+			lon_end = float(self.ws['D' + str(end_index)].value)
+			lat_end = float(self.ws['E' + str(end_index)].value)
+			driving_lon_lat[i] = [lon_start, lat_start, lon_end, lat_end]
+		return driving_lon_lat
+	
+	def get_speed_variance(self, driving_area, center_value):
+		speed_variance = {}
+		for i in range(len(driving_area)):
+			j = driving_area[i][0]
+			speed_sum = 0
+			count = 0
+			while(j<=driving_area[i][1]):
+				if(self.__is_valid_data(j)):
+					sub_speed_center = int(self.ws['F' + str(j)].value) - center_value
+					speed_sum = speed_sum + sub_speed_center*sub_speed_center
+					count = count + 1
+				j = j+1
+			speed_variance[i] = math.sqrt(speed_sum/count)
+		return speed_variance
