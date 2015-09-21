@@ -125,7 +125,7 @@ class DataCalc:
 		for i in range(len(valid_stop_area)):
 			length = len(valid_stop_area[i])
 			stop_index = valid_stop_area[i][length-1]
-			str_time = str(self.ws['I' + str(stop_index)].value)
+			str_time = str(self.ws['I' + str(stop_index+1)].value)
 			stop_time[i] = str_time
 			
 		return stop_time
@@ -137,7 +137,7 @@ class DataCalc:
 			start_index = valid_stop_area[i][0]
 			end_index = valid_stop_area[i][length-1]
 			start_time = datetime.strptime(str(self.ws['I' + str(start_index)].value), '%Y-%m-%d %H:%M:%S')
-			end_time = datetime.strptime(str(self.ws['I' + str(end_index)].value), '%Y-%m-%d %H:%M:%S')
+			end_time = datetime.strptime(str(self.ws['I' + str(end_index+1)].value), '%Y-%m-%d %H:%M:%S')
 			stop_interval_dict[i] = (end_time-start_time).seconds/60
 		return stop_interval_dict
 	
@@ -176,19 +176,29 @@ class DataCalc:
 			return True
 		else:
 			return False
-
+	
 	def get_driving_ave_speed(self, driving_area):
 		driving_area_ave_speed = {}
 		for i in range(len(driving_area)):
 			j = driving_area[i][0]
-			speed_sum = 0
-			count = 0
+			path_sum = 0
+			time_sum = 0
 			while(j<=driving_area[i][1]):
-				if(self.__is_valid_data(j)):
-					speed_sum = speed_sum + int(self.ws['F' + str(j)].value)
-					count = count + 1
+				if(j<self.column_length and self.__is_valid_data(j) and self.__is_valid_data(j+1)):
+					lon_start = float(self.ws['D' + str(j)].value)
+					lat_start = float(self.ws['E' + str(j)].value)
+					lon_end = float(self.ws['D' + str(j+1)].value)
+					lat_end = float(self.ws['E' + str(j+1)].value)
+					path = calc_distance(lon_start, lat_start, lon_end, lat_end)
+					path_sum = path_sum + path
+					
+					start_time = str(self.ws['I' + str(j)].value)			
+					end_time = str(self.ws['I' + str(j+1)].value)
+
+					interval = (datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')-datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')).seconds/(60*60)
+					time_sum = time_sum + interval
 				j = j+1
-			driving_area_ave_speed[i] = speed_sum/count
+			driving_area_ave_speed[i] = path_sum/time_sum
 		return driving_area_ave_speed
 	
 	def get_driving_time_stat(self, driving_area):
@@ -197,7 +207,9 @@ class DataCalc:
 			length = len(driving_area[i])
 			start_index = driving_area[i][0]
 			end_index = driving_area[i][length-1]
-			start_time = str(self.ws['I' + str(start_index)].value)			
+			start_time = str(self.ws['I' + str(start_index)].value)		
+			if(end_index!=self.column_length):
+				end_index = end_index + 1
 			end_time = str(self.ws['I' + str(end_index)].value)
 			interval = (datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')-datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')).seconds/60
 			driving_area_time[i] = [start_time, end_time, interval]
@@ -209,6 +221,8 @@ class DataCalc:
 			length = len(driving_area[i])
 			start_index = driving_area[i][0]
 			end_index = driving_area[i][length-1]
+			if(end_index!=self.column_length):
+				end_index = end_index + 1
 			lon_start = float(self.ws['D' + str(start_index)].value)
 			lat_start = float(self.ws['E' + str(start_index)].value)
 			lon_end = float(self.ws['D' + str(end_index)].value)
