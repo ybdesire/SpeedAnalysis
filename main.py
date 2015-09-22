@@ -8,7 +8,7 @@ def test():
 	
 	
 FILENAME = 'data-20150917.xlsx'
-	
+
 def main():
 	data_calc_mgr = DataCalc(FILENAME, 'vehicle_gps_log')
 	speed_zero_index_list = data_calc_mgr.get_car_stop_point()
@@ -54,7 +54,9 @@ def main():
 	speed_variance_90 = data_calc_mgr.get_speed_variance(car_driving_area, 90)
 	speed_variance_95 = data_calc_mgr.get_speed_variance(car_driving_area, 95)
 	
-	
+	car_driving_reasonable_speed_time_interval = data_calc_mgr.get_reasonable_speed_time_interval(car_driving_area)
+	print('\ncar driving reasonable speed tiem interval')
+	print(car_driving_reasonable_speed_time_interval)	
 
 	
 def print_order_dict(data):
