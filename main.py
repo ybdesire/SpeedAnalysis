@@ -27,9 +27,13 @@ def main():
 	print('\ncar stop end time:')
 	print_order_dict(car_stop_end_time)
 	
-	car_stop_time_intervel = data_calc_mgr.get_stop_time_interval(valid_stop_area)
+	car_stop_time_interval = data_calc_mgr.get_stop_time_interval(valid_stop_area)
 	print('\ncar stop time intervel:')
-	print_order_dict(car_stop_time_intervel)
+	print_order_dict(car_stop_time_interval)
+	
+	car_stop_time_sum = data_calc_mgr.get_stop_time_sum(car_stop_time_interval)
+	print('\ncar stop time sum:')
+	print(car_stop_time_sum)
 	
 	car_driving_area = data_calc_mgr.get_driving_area(valid_stop_area)
 	print('\ncar driving area:')
@@ -42,11 +46,24 @@ def main():
 	car_driving_time_stat = data_calc_mgr.get_driving_time_stat(car_driving_area)
 	print('\ncar driving start-time, end-time, intervel:')
 	print_order_dict(car_driving_time_stat)	
-
+	
+	car_driving_area_time_interval = data_calc_mgr.get_driving_time_interval(car_driving_area)
+	car_driving_time_sum = data_calc_mgr.get_driving_time_sum(car_driving_area_time_interval)
+	print('\ncar driving time sum:')
+	print(car_driving_time_sum)
+	
 	car_driving_lon_lat = data_calc_mgr.get_driving_lon_lat(car_driving_area)
 	print('\ncar driving start-lon lat, end-lon lat')
 	print_order_dict(car_driving_lon_lat)	
-
+	
+	car_driving_length = data_calc_mgr.get_driving_path_length_list(car_driving_area)
+	print('\ncar driving path length:')
+	print_order_dict(car_driving_length)
+	
+	car_driving_path_sum = data_calc_mgr.get_driving_length_sum(car_driving_length)
+	print('\ncar driving path length sum:')
+	print(car_driving_path_sum)
+	
 	speed_variance_70 = data_calc_mgr.get_speed_variance(car_driving_area, 70)
 	speed_variance_75 = data_calc_mgr.get_speed_variance(car_driving_area, 75)
 	speed_variance_80 = data_calc_mgr.get_speed_variance(car_driving_area, 80)
@@ -54,9 +71,22 @@ def main():
 	speed_variance_90 = data_calc_mgr.get_speed_variance(car_driving_area, 90)
 	speed_variance_95 = data_calc_mgr.get_speed_variance(car_driving_area, 95)
 	
-	car_driving_reasonable_speed_time_interval = data_calc_mgr.get_reasonable_speed_time_interval(car_driving_area)
+	car_driving_reasonable_speed_time_interval_77_83 = data_calc_mgr.get_reasonable_speed_time_interval(car_driving_area, 77, 83)
+	car_driving_reasonable_speed_time_interval_0_20 = data_calc_mgr.get_reasonable_speed_time_interval(car_driving_area, 0, 20)
+	car_driving_reasonable_speed_time_interval_20_40 = data_calc_mgr.get_reasonable_speed_time_interval(car_driving_area, 20, 40)
+	car_driving_reasonable_speed_time_interval_40_60 = data_calc_mgr.get_reasonable_speed_time_interval(car_driving_area, 40, 60)
+	car_driving_reasonable_speed_time_interval_60_75 = data_calc_mgr.get_reasonable_speed_time_interval(car_driving_area, 60, 75)
+	car_driving_reasonable_speed_time_interval_75_85 = data_calc_mgr.get_reasonable_speed_time_interval(car_driving_area, 75, 85)
+	car_driving_reasonable_speed_time_interval_85_95 = data_calc_mgr.get_reasonable_speed_time_interval(car_driving_area, 85, 95)
+	car_driving_reasonable_speed_time_interval_95_1000000 = data_calc_mgr.get_reasonable_speed_time_interval(car_driving_area, 95, 100000)
 	print('\ncar driving reasonable speed tiem interval')
-	print(car_driving_reasonable_speed_time_interval)	
+	print('speed {0}-{1}: {2} min'.format(0, 20, car_driving_reasonable_speed_time_interval_0_20))	
+	print('speed {0}-{1}: {2} min'.format(20, 40, car_driving_reasonable_speed_time_interval_20_40))	
+	print('speed {0}-{1}: {2} min'.format(40, 60, car_driving_reasonable_speed_time_interval_40_60))	
+	print('speed {0}-{1}: {2} min'.format(60, 75, car_driving_reasonable_speed_time_interval_60_75))	
+	print('speed {0}-{1}: {2} min'.format(75, 85, car_driving_reasonable_speed_time_interval_75_85))	
+	print('speed {0}-{1}: {2} min'.format(85, 95, car_driving_reasonable_speed_time_interval_85_95))	
+	print('speed {0}-{1}: {2} min'.format(95, 1000000, car_driving_reasonable_speed_time_interval_95_1000000))
 
 	
 def print_order_dict(data):

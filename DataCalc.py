@@ -6,8 +6,6 @@ import math
 AREA_DIST_THRESHOLD = 0.3 # 0.3KM
 ZERO_SPEED_THRESHOLD = 10 #10KM/H. car stop speed cannot be real 0.
 DIST_THRESHOLD = 0.3 # 0.3KM
-REASONABLE_HIGH_SPEED = 83#KM/H
-REASONABLE_LOW_SPEED = 77#KM/H
 
 class DataCalc:
 	def __init__(self, file_path, sheet_name='vehicle_gps_log'):
@@ -148,6 +146,12 @@ class DataCalc:
 			stop_interval_dict[i] = (end_time-start_time).seconds/60
 		return stop_interval_dict
 	
+	def get_stop_time_sum(self, car_stop_time_interval):
+		time_sum = 0
+		for i in range(len(car_stop_time_interval)):
+			time_sum = time_sum+car_stop_time_interval[i]
+		return time_sum
+	
 	def get_driving_area(self, valid_stop_area):
 		self.__get_column_length()
 		driving_area = {}
@@ -221,6 +225,26 @@ class DataCalc:
 			interval = (datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')-datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')).seconds/60
 			driving_area_time[i] = [start_time, end_time, interval]
 		return driving_area_time
+
+	def get_driving_time_interval(self, driving_area):
+		driving_area_time_interval = {}
+		for i in range(len(driving_area)):
+			length = len(driving_area[i])
+			start_index = driving_area[i][0]
+			end_index = driving_area[i][length-1]
+			start_time = str(self.ws['I' + str(start_index)].value)		
+			if(end_index!=self.column_length):
+				end_index = end_index + 1
+			end_time = str(self.ws['I' + str(end_index)].value)
+			interval = (datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')-datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')).seconds/60
+			driving_area_time_interval[i] = interval
+		return driving_area_time_interval
+
+	def get_driving_time_sum(self, driving_area_time_interval):
+		time_sum = 0
+		for i in range(len(driving_area_time_interval)):
+			time_sum = time_sum+driving_area_time_interval[i]
+		return time_sum
 		
 	def get_driving_lon_lat(self, driving_area):
 		driving_lon_lat = {}
@@ -237,6 +261,38 @@ class DataCalc:
 			driving_lon_lat[i] = [lon_start, lat_start, lon_end, lat_end]
 		return driving_lon_lat
 	
+	def get_driving_path_length_list(self, driving_area):
+		driving_length = {}
+		for i in range(len(driving_area)):
+			length = len(driving_area[i])				
+			path_length_sum = 0
+			if(length>1):
+				start_index = driving_area[i][0]
+				end_index = driving_area[i][length-1]
+				if(end_index!=self.column_length):
+					end_index = end_index+1
+				valid_point_list = []
+				for j in range(start_index, end_index):
+					if(self.__is_valid_data(j)):
+						valid_point_list.append(j)
+				for j in range(len(valid_point_list)):
+					if(j>0):
+						start_lon = float(self.ws['D' + str(valid_point_list[j-1])].value)
+						start_lat = float(self.ws['E' + str(valid_point_list[j-1])].value)
+						end_lon = float(self.ws['D' + str(valid_point_list[j])].value)
+						end_lat = float(self.ws['E' + str(valid_point_list[j])].value)
+						dist = calc_distance(start_lon, start_lat, end_lon, end_lat)
+						path_length_sum = path_length_sum+dist
+				
+			driving_length[i] = path_length_sum
+		return 	driving_length
+		
+	def get_driving_length_sum(self, driving_length):
+		path_sum = 0
+		for i in range(len(driving_length)):
+			path_sum = path_sum+driving_length[i]
+		return path_sum
+	
 	def get_speed_variance(self, driving_area, center_value):
 		speed_variance = {}
 		for i in range(len(driving_area)):
@@ -252,7 +308,7 @@ class DataCalc:
 			speed_variance[i] = math.sqrt(speed_sum/count)
 		return speed_variance
 
-	def __get_reasonable_speed_points(self, driving_area):
+	def __get_reasonable_speed_points(self, driving_area, speed_low, speed_high):
 		driving_reasonable_speed_points = {}
 		for i in range(len(driving_area)):
 			length = len(driving_area[i])
@@ -261,13 +317,13 @@ class DataCalc:
 			reasonable_speed_list = []
 			for j in range(start_index, end_index+1):
 				current_speed = int(self.ws['F' + str(j)].value)
-				if(self.__is_valid_data(j) and current_speed>=REASONABLE_LOW_SPEED and current_speed<=REASONABLE_HIGH_SPEED):
+				if(current_speed>=speed_low and current_speed<=speed_high):
 					reasonable_speed_list.append(j)
 			driving_reasonable_speed_points[i] = reasonable_speed_list
 		return 	driving_reasonable_speed_points
 	
-	def __get_reasonable_speed_area(self, driving_area):
-		driving_reasonable_speed_points = self.__get_reasonable_speed_points(driving_area)
+	def __get_reasonable_speed_area(self, driving_area, speed_low, speed_high):
+		driving_reasonable_speed_points = self.__get_reasonable_speed_points(driving_area, speed_low, speed_high)
 		driving_reasonable_speed_area = {}
 		j = 0
 		for i in range(len(driving_reasonable_speed_points)):
@@ -285,8 +341,8 @@ class DataCalc:
 					continues_point_list.append(point)
 		return driving_reasonable_speed_area	
 		
-	def get_reasonable_speed_time_interval(self, driving_area):
-		driving_reasonable_speed_area = self.__get_reasonable_speed_area(driving_area)
+	def get_reasonable_speed_time_interval(self, driving_area, speed_low, speed_high):
+		driving_reasonable_speed_area = self.__get_reasonable_speed_area(driving_area, speed_low, speed_high)
 		self.__log_to_file('reasonable_speed_area.txt', driving_reasonable_speed_area)
 		time_sum = 0
 		for i in range(len(driving_reasonable_speed_area)):
@@ -294,6 +350,8 @@ class DataCalc:
 				length = len(driving_reasonable_speed_area[i])
 				start_index = driving_reasonable_speed_area[i][0]
 				end_index = driving_reasonable_speed_area[i][length-1]
+				if(end_index!=self.column_length):
+					end_index = end_index+1
 				start_time = datetime.strptime(str(self.ws['I' + str(start_index)].value), '%Y-%m-%d %H:%M:%S')
 				end_time = datetime.strptime(str(self.ws['I' + str(end_index)].value), '%Y-%m-%d %H:%M:%S')
 				time_sum = time_sum + (end_time-start_time).seconds/60
