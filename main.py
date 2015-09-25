@@ -11,10 +11,15 @@ FILENAME = 'data-20150917.xlsx'
 
 def main():
 	data_calc_mgr = DataCalc(FILENAME, 'vehicle_gps_log')
-	speed_zero_index_list = data_calc_mgr.get_car_stop_point()
+	speed_zero_index_list = data_calc_mgr.get_car_stop_point()	
+	print('speed zero point\n{0}'.format(speed_zero_index_list))
+
 	car_stop_area = data_calc_mgr.get_car_stop_area(speed_zero_index_list)
-	valid_stop_area = data_calc_mgr.get_valid_stop_area(car_stop_area)
+	print('stop area\n{0}'.format(car_stop_area))
 	
+	valid_stop_area = data_calc_mgr.get_valid_stop_area(car_stop_area)
+	print('valid stop area\n{0}'.format(valid_stop_area))
+
 	stop_lon_lat = data_calc_mgr.get_stop_lon_lat(valid_stop_area)
 	print('\ncar stop lon lat:')
 	print_order_dict(stop_lon_lat)
@@ -65,11 +70,29 @@ def main():
 	print(car_driving_path_sum)
 	
 	speed_variance_70 = data_calc_mgr.get_speed_variance(car_driving_area, 70)
+	print('\ncar speed variance with 70km/h')
+	print_order_dict(speed_variance_70)	
+
 	speed_variance_75 = data_calc_mgr.get_speed_variance(car_driving_area, 75)
+	print('\ncar speed variance with 75km/h')
+	print_order_dict(speed_variance_75)	
+
 	speed_variance_80 = data_calc_mgr.get_speed_variance(car_driving_area, 80)
+	print('\ncar speed variance with 80km/h')
+	print_order_dict(speed_variance_80)	
+
 	speed_variance_85 = data_calc_mgr.get_speed_variance(car_driving_area, 85)
+	print('\ncar speed variance with 85km/h')
+	print_order_dict(speed_variance_85)	
+
 	speed_variance_90 = data_calc_mgr.get_speed_variance(car_driving_area, 90)
+	print('\ncar speed variance with 90km/h')
+	print_order_dict(speed_variance_90)	
+
 	speed_variance_95 = data_calc_mgr.get_speed_variance(car_driving_area, 95)
+	print('\ncar speed variance with 95km/h')
+	print_order_dict(speed_variance_95)	
+
 	
 	car_driving_reasonable_speed_time_interval_77_83 = data_calc_mgr.get_reasonable_speed_time_interval(car_driving_area, 77, 83)
 	car_driving_reasonable_speed_time_interval_0_20 = data_calc_mgr.get_reasonable_speed_time_interval(car_driving_area, 0, 20)
@@ -88,6 +111,8 @@ def main():
 	print('speed {0}-{1}: {2} min'.format(85, 95, car_driving_reasonable_speed_time_interval_85_95))	
 	print('speed {0}-{1}: {2} min'.format(95, 1000000, car_driving_reasonable_speed_time_interval_95_1000000))
 
+	acceleration = data_calc_mgr.get_speed_change_area(car_driving_area)
+	#print(acceleration)
 	
 def print_order_dict(data):
 	for i in range(len(data)):

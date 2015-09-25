@@ -6,6 +6,8 @@ import math
 AREA_DIST_THRESHOLD = 0.3 # 0.3KM
 ZERO_SPEED_THRESHOLD = 10 #10KM/H. car stop speed cannot be real 0.
 DIST_THRESHOLD = 0.3 # 0.3KM
+ACCE_ZERO_NEG = -0.2 # m/s^2
+ACCE_ZERO_POS = 0.2 # m/s^2
 
 class DataCalc:
 	def __init__(self, file_path, sheet_name='vehicle_gps_log'):
@@ -55,7 +57,6 @@ class DataCalc:
 				lon2 = float(self.ws['D' + str(speed_zero_index_list[i+1])].value)
 				lat2 = float(self.ws['E' + str(speed_zero_index_list[i+1])].value)
 				dist = calc_distance(lon1, lat1, lon2, lat2)
-
 				if(dist<AREA_DIST_THRESHOLD):
 					car_stop_list.append(speed_zero_index_list[i])
 				else:
@@ -87,12 +88,12 @@ class DataCalc:
 		invalid_key_list = []
 		for key in valid_stop_area_temp:
 			value = valid_stop_area_temp[key]
-			zero_speed_exist = False
+			zero_speed_exist_count = 0
 			for value_item in value:
 				speed = int(self.ws['F' + str(value_item)].value)
 				if(speed==0):
-					zero_speed_exist = True
-			if (not zero_speed_exist or len(value)==1 or not self.__is_valid_dist_interval(value)):
+					zero_speed_exist_count = zero_speed_exist_count+1
+			if (not zero_speed_exist_count>=2 or len(value)==1 or not self.__is_valid_dist_interval(value)):
 				invalid_key_list.append(key)
 		#remove invalid stop area		
 		for k in invalid_key_list:
@@ -357,4 +358,58 @@ class DataCalc:
 				time_sum = time_sum + (end_time-start_time).seconds/60
 		return time_sum
 
+	def __get_acceleration(self, driving_area):
+		acc_for_each_area = {}
+		for i in range(len(driving_area)):
+			length = len(driving_area[i])				
+			start_index = driving_area[i][0]
+			end_index = driving_area[i][length-1]
+			if(end_index!=self.column_length):
+				end_index = end_index+1
+			acc_list = []
+			for j in range(start_index, end_index):
+				current_speed = int(self.ws['F' + str(j)].value)
+				current_time = str(self.ws['I' + str(j)].value)
+				if(j==start_index and start_index==1):
+					acc = 0
+				elif(start_index>1):
+					pre_speed = int(self.ws['F' + str(j-1)].value)
+					pre_time = str(self.ws['I' + str(j-1)].value)
+					interval = (datetime.strptime(current_time, '%Y-%m-%d %H:%M:%S')-datetime.strptime(pre_time, '%Y-%m-%d %H:%M:%S')).seconds
+					if(interval==0):
+						if(len(acc_list)==0):
+							acc = 0
+						else:
+							acc = acc_list[len(acc_list)-1]
+					else:
+						acc = (current_speed-pre_speed)/(3.6*interval)
+				if(acc>=ACCE_ZERO_NEG and acc<=ACCE_ZERO_POS):
+					acc = 0
+				acc_list.append(acc)
+			acc_for_each_area[i] = acc_list
+			
+		return acc_for_each_area
 		
+	def get_speed_change_area(self, driving_area):
+		acc_for_each_area = self.__get_acceleration(driving_area)
+		print(acc_for_each_area)
+		for i in range(len(acc_for_each_area)):
+			#is validate data
+			j = len(acc_for_each_area[i])-1
+			acc_pos_count = 0
+			while(j>=0):
+				if(acc_for_each_area[i][j]>0):
+					j = j-1
+					acc_pos_count = acc_pos_count+1
+					if(acc_pos_count>=2):
+						print('data invalid{0}:\n{1}'.format(i, acc_for_each_area[i]))
+						break
+				elif(acc_for_each_area[i][j]==0):
+					j = j-1
+				else:
+					break
+			if(acc_pos_count<2):
+				acc_for_each_area[i].insert(0, 0)
+				acc_for_each_area[i].append(0)
+				
+				
