@@ -469,7 +469,7 @@ class DataCalc:
 					acc_positive_count = acc_positive_count+1
 				else:
 					break
-			if(acc_positive_count==len(acc_area[i])-1):
+			if(acc_positive_count==len(acc_area[i])):
 				acc_area_speed_inc[count] = acc_area[i]
 				index_area_speed_inc[count] = acc_index_area[i]
 				count = count+1
@@ -501,7 +501,7 @@ class DataCalc:
 					acc_negative_count = acc_negative_count+1
 				else:
 					break
-			if(acc_negative_count==len(acc_area[i])-1):
+			if(acc_negative_count==len(acc_area[i])):
 				acc_area_speed_dec[count] = acc_area[i]
 				index_area_speed_dec[count] = acc_index_area[i]
 				count = count+1

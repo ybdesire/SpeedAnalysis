@@ -1,6 +1,7 @@
 import timeit
 from DataCalc import DataCalc
 from CalcDistance import calc_distance
+from openpyxl import Workbook
 
 def test():
 	distance = calc_distance(121.306216, 31.353354, 121.185040, 31.405485)
@@ -110,29 +111,37 @@ def main():
 	print('speed {0}-{1}: {2} min'.format(75, 85, car_driving_reasonable_speed_time_interval_75_85))	
 	print('speed {0}-{1}: {2} min'.format(85, 95, car_driving_reasonable_speed_time_interval_85_95))	
 	print('speed {0}-{1}: {2} min'.format(95, 1000000, car_driving_reasonable_speed_time_interval_95_1000000))
-
+		
 	acc_area, acc_index_area = data_calc_mgr.get_speed_change_area(car_driving_area)
-	
+	print('\nacc area')
+	print(acc_area)
 	acc_area_speed_inc, index_area_speed_inc = data_calc_mgr.get_speed_increase_area(acc_area, acc_index_area)
 	speed_inc_start_time = data_calc_mgr.get_speed_inc_dec_start_time(index_area_speed_inc)
 	speed_inc_end_time = data_calc_mgr.get_speed_inc_dec_end_time(index_area_speed_inc)
 	speed_inc_time_interval = data_calc_mgr.get_speed_inc_dec_time_interval(index_area_speed_inc)
 	speed_inc_speed_vari = data_calc_mgr.get_speed_inc_dec_speed(index_area_speed_inc)
 	speed_inc_acc = data_calc_mgr.get_speed_inc_dec_acc(index_area_speed_inc)
-	print('\ncar speed increase acc:')
-	print_order_dict(acc_area_speed_inc)
-	print('\ncar speed increase index:')
-	print_order_dict(index_area_speed_inc)
-	print('\ncar speed increase start time:')
-	print_order_dict(speed_inc_start_time)
-	print('\ncar speed increase end time:')
-	print_order_dict(speed_inc_end_time)
-	print('\ncar speed increase time interval:')
-	print_order_dict(speed_inc_time_interval)
-	print('\ncar speed increase speed variation:')
-	print_order_dict(speed_inc_speed_vari)	
-	print('\ncar speed increase acc:')
-	print_order_dict(speed_inc_acc)
+	
+	speed_inc_wb = Workbook()
+	speed_inc_ws = speed_inc_wb.active
+	
+	speed_inc_ws['A1'] = 'acc_list'
+	print_to_excel(speed_inc_ws, 'A', acc_area_speed_inc)
+	speed_inc_ws['B1'] = 'index_list'
+	print_to_excel(speed_inc_ws, 'B', index_area_speed_inc)
+	speed_inc_ws['C1'] = 'start_time'
+	print_to_excel(speed_inc_ws, 'C', speed_inc_start_time)
+	speed_inc_ws['D1'] = 'end_time'
+	print_to_excel(speed_inc_ws, 'D', speed_inc_end_time)
+	speed_inc_ws['E1'] = 'time_interval'
+	print_to_excel(speed_inc_ws, 'E', speed_inc_time_interval)
+	speed_inc_ws['F1'] = 'speed_vari'
+	print_to_excel(speed_inc_ws, 'F', speed_inc_speed_vari)
+	speed_inc_ws['G1'] = 'ave_acc'
+	print_to_excel(speed_inc_ws, 'G', speed_inc_acc)
+	
+	speed_inc_wb.save("speed_inc_state.xlsx")
+	print('\nspeed increase stat calculation ended.')
 	
 	acc_area_speed_dec, index_area_speed_dec = data_calc_mgr.get_speed_decrease_area(acc_area, acc_index_area)
 	speed_dec_start_time = data_calc_mgr.get_speed_inc_dec_start_time(index_area_speed_dec)
@@ -140,26 +149,43 @@ def main():
 	speed_dec_time_interval = data_calc_mgr.get_speed_inc_dec_time_interval(index_area_speed_dec)
 	speed_dec_speed_vari = data_calc_mgr.get_speed_inc_dec_speed(index_area_speed_dec)
 	speed_dec_acc = data_calc_mgr.get_speed_inc_dec_acc(index_area_speed_dec)
-	print('\ncar speed decrease acc:')
-	print_order_dict(acc_area_speed_dec)
-	print('\ncar speed decrease index:')
-	print_order_dict(index_area_speed_dec)
-	print('\ncar speed decrease start time:')
-	print_order_dict(speed_dec_start_time)
-	print('\ncar speed decrease end time:')
-	print_order_dict(speed_dec_end_time)
-	print('\ncar speed decrease time interval:')
-	print_order_dict(speed_dec_time_interval)
-	print('\ncar speed decrease speed variation:')
-	print_order_dict(speed_dec_speed_vari)	
-	print('\ncar speed decrease acc:')
-	print_order_dict(speed_dec_acc)
+	
+	speed_dec_wb = Workbook()
+	speed_dec_ws = speed_dec_wb.active
+	
+	speed_dec_ws['A1'] = 'acc_list'
+	print_to_excel(speed_dec_ws, 'A', acc_area_speed_dec)
+	speed_dec_ws['B1'] = 'index_list'
+	print_to_excel(speed_dec_ws, 'B', index_area_speed_dec)
+	speed_dec_ws['C1'] = 'start_time'
+	print_to_excel(speed_dec_ws, 'C', speed_dec_start_time)
+	speed_dec_ws['D1'] = 'end_time'
+	print_to_excel(speed_dec_ws, 'D', speed_dec_end_time)
+	speed_dec_ws['E1'] = 'time_interval'
+	print_to_excel(speed_dec_ws, 'E', speed_dec_time_interval)
+	speed_dec_ws['F1'] = 'speed_vari'
+	print_to_excel(speed_dec_ws, 'F', speed_dec_speed_vari)
+	speed_dec_ws['G1'] = 'ave_acc'
+	print_to_excel(speed_dec_ws, 'G', speed_dec_acc)
+	
+	speed_dec_wb.save("speed_dec_state.xlsx")
+	print('\nspeed decrease stat calculation ended.')
+
 	
 def print_order_dict(data):
 	for i in range(len(data)):
 		print(data[i])
 
 		
+def print_to_excel(ws, col, data_dict):
+	for i in range(len(data_dict)):
+		print(data_dict[i])
+		if(type(data_dict[i])==type([1,2,3])):
+			ws[col+str(i+2)] = ','.join(str(x) for x in data_dict[i])
+		else:
+			ws[col+str(i+2)] = data_dict[i]
+	
+	
 if __name__=='__main__':
 	start = timeit.default_timer()
 	main()
