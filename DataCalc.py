@@ -392,8 +392,14 @@ class DataCalc:
 		
 	def get_speed_change_area(self, driving_area):
 		acc_for_each_area = self.__get_acceleration(driving_area)
-		print(acc_for_each_area)
+		
+		acc_area = {}
+		acc_index_area = {}
+		acc_index_count = 0
+		
 		for i in range(len(acc_for_each_area)):
+			acc_area_list=[]
+			acc_index_area_list=[]
 			#is validate data
 			j = len(acc_for_each_area[i])-1
 			acc_pos_count = 0
@@ -411,5 +417,163 @@ class DataCalc:
 			if(acc_pos_count<2):
 				acc_for_each_area[i].insert(0, 0)
 				acc_for_each_area[i].append(0)
-				
-				
+				first_zero = False
+				last_zero = False
+				for k in range(len(acc_for_each_area[i])):
+					if(k==0):
+						if(acc_for_each_area[i][k]==0 and acc_for_each_area[i][k+1]!=0):
+							first_zero = True
+							last_zero = False
+							acc_area_list.append(acc_for_each_area[i][0])
+							if(driving_area[i][0]>1):
+								acc_index_area_list.append(driving_area[i][0]-1)
+							else:
+								acc_index_area_list.append(0)
+					else:	
+						if(k<len(acc_for_each_area[i])-1 and acc_for_each_area[i][k]==0 and acc_for_each_area[i][k+1]!=0 and not first_zero):
+							first_zero = True
+							last_zero = False
+							acc_area_list.append(acc_for_each_area[i][k])
+							acc_index_area_list.append(driving_area[i][0]+k)
+						elif(acc_for_each_area[i][k]==0 and acc_for_each_area[i][k-1]!=0 and not last_zero and first_zero):
+							first_zero = False
+							last_zero = True
+							acc_area_list.append(acc_for_each_area[i][k])
+							acc_index_area_list.append(driving_area[i][0]+k)
+							acc_area[acc_index_count] = acc_area_list
+							acc_index_area[acc_index_count] = acc_index_area_list
+							acc_index_count = acc_index_count+1
+							#the zero acc should be next area
+							acc_area_list = []
+							acc_index_area_list = []
+							if(k<len(acc_for_each_area[i])-1 and acc_for_each_area[i][k+1]!=0):
+								first_zero = True
+								last_zero = False
+								acc_area_list.append(acc_for_each_area[i][k])
+								acc_index_area_list.append(driving_area[i][0]+k)						
+						else:
+							if(first_zero and not last_zero):
+								acc_area_list.append(acc_for_each_area[i][k])
+								acc_index_area_list.append(driving_area[i][0]+k)
+		return acc_area, acc_index_area
+	
+	def get_speed_increase_area(self, acc_area, acc_index_area):
+		acc_area_speed_inc = {}
+		index_area_speed_inc = {}
+		count  = 0
+			
+		for i in range(len(acc_area)):		
+			acc_positive_count = 0
+			for j in range(len(acc_area[i])):
+				if(acc_area[i][j]>=0):
+					acc_positive_count = acc_positive_count+1
+				else:
+					break
+			if(acc_positive_count==len(acc_area[i])-1):
+				acc_area_speed_inc[count] = acc_area[i]
+				index_area_speed_inc[count] = acc_index_area[i]
+				count = count+1
+			else:
+				speed_first = int(self.ws['F' + str(acc_index_area[i][0])].value)
+				speed_last = int(self.ws['F' + str(acc_index_area[i][len(acc_index_area[i])-1])].value)
+				acc_firxt = acc_area[i][1]
+				acc_last = acc_area[i][len(acc_area[i])-2]
+				if(acc_firxt>0 and acc_last<0 and speed_last>speed_first):
+					acc_area_speed_inc[count] = acc_area[i]
+					index_area_speed_inc[count] = acc_index_area[i]
+					count = count+1
+				elif(acc_firxt<0 and acc_last>0  and speed_last>speed_first):
+					acc_area_speed_inc[count] = acc_area[i]
+					index_area_speed_inc[count] = acc_index_area[i]
+					count = count+1
+		return acc_area_speed_inc, index_area_speed_inc
+		
+
+	def get_speed_decrease_area(self, acc_area, acc_index_area):
+		acc_area_speed_dec = {}
+		index_area_speed_dec = {}
+		count  = 0
+			
+		for i in range(len(acc_area)):		
+			acc_negative_count = 0
+			for j in range(len(acc_area[i])):
+				if(acc_area[i][j]<=0):
+					acc_negative_count = acc_negative_count+1
+				else:
+					break
+			if(acc_negative_count==len(acc_area[i])-1):
+				acc_area_speed_dec[count] = acc_area[i]
+				index_area_speed_dec[count] = acc_index_area[i]
+				count = count+1
+			else:
+				speed_first = int(self.ws['F' + str(acc_index_area[i][0])].value)
+				speed_last = int(self.ws['F' + str(acc_index_area[i][len(acc_index_area[i])-1])].value)
+				acc_firxt = acc_area[i][1]
+				acc_last = acc_area[i][len(acc_area[i])-2]
+				if(acc_firxt>0 and acc_last<0 and speed_last<speed_first):
+					acc_area_speed_dec[count] = acc_area[i]
+					index_area_speed_dec[count] = acc_index_area[i]
+					count = count+1
+				elif(acc_firxt<0 and acc_last>0  and speed_last<speed_first):
+					acc_area_speed_dec[count] = acc_area[i]
+					index_area_speed_dec[count] = acc_index_area[i]
+					count = count+1
+		return acc_area_speed_dec, index_area_speed_dec
+		
+	def get_speed_inc_dec_start_time(self, index_area):
+		time_start = {}
+		for i in range(len(index_area)):
+			start_index = index_area[i][0]
+			start_time = str(self.ws['I' + str(start_index)].value)
+			time_start[i] = start_time
+		return time_start
+		
+	def get_speed_inc_dec_end_time(self, index_area):
+		time_end = {}
+		for i in range(len(index_area)):
+			end_index = index_area[i][len(index_area[i])-1]
+			end_time = str(self.ws['I' + str(end_index)].value)
+			time_end[i] = end_time
+		return time_end
+	
+	def get_speed_inc_dec_time_interval(self, index_area):
+		time_interval = {}
+		for i in range(len(index_area)):
+			start_index = index_area[i][0]
+			start_time = datetime.strptime(str(self.ws['I' + str(start_index)].value), '%Y-%m-%d %H:%M:%S')
+
+			end_index = index_area[i][len(index_area[i])-1]
+			end_time = datetime.strptime(str(self.ws['I' + str(end_index)].value), '%Y-%m-%d %H:%M:%S')
+			time_interval[i] = (end_time-start_time).seconds
+		return time_interval
+	
+	def get_speed_inc_dec_speed(self, index_area):
+		speed_dict = {}
+		for i in range(len(index_area)):
+			start_index = index_area[i][0]
+			start_speed = int(self.ws['F' + str(start_index)].value)
+
+			end_index = index_area[i][len(index_area[i])-1]
+			end_speed = int(self.ws['F' + str(end_index)].value)
+
+			speed_vari = end_speed-start_speed
+			speed_dict[i] = speed_vari
+		return speed_dict
+	
+	def get_speed_inc_dec_acc(self, index_area):
+		acc_dict = {}
+		for i in range(len(index_area)):
+			start_index = index_area[i][0]
+			start_time = datetime.strptime(str(self.ws['I' + str(start_index)].value), '%Y-%m-%d %H:%M:%S')
+			start_speed = int(self.ws['F' + str(start_index)].value)
+
+			end_index = index_area[i][len(index_area[i])-1]
+			end_time = datetime.strptime(str(self.ws['I' + str(end_index)].value), '%Y-%m-%d %H:%M:%S')
+			end_speed = int(self.ws['F' + str(end_index)].value)
+
+			time_interval = (end_time-start_time).seconds
+			acc = (end_speed-start_speed)/(3.6*time_interval)
+			acc_dict[i] = acc
+		return acc_dict
+			
+		
