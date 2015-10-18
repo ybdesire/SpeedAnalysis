@@ -434,12 +434,12 @@ class DataCalc:
 							first_zero = True
 							last_zero = False
 							acc_area_list.append(acc_for_each_area[i][k])
-							acc_index_area_list.append(driving_area[i][0]+k)
+							acc_index_area_list.append(driving_area[i][0]+k-1)
 						elif(acc_for_each_area[i][k]==0 and acc_for_each_area[i][k-1]!=0 and not last_zero and first_zero):
 							first_zero = False
 							last_zero = True
 							acc_area_list.append(acc_for_each_area[i][k])
-							acc_index_area_list.append(driving_area[i][0]+k)
+							acc_index_area_list.append(driving_area[i][0]+k-1)
 							acc_area[acc_index_count] = acc_area_list
 							acc_index_area[acc_index_count] = acc_index_area_list
 							acc_index_count = acc_index_count+1
@@ -450,11 +450,11 @@ class DataCalc:
 								first_zero = True
 								last_zero = False
 								acc_area_list.append(acc_for_each_area[i][k])
-								acc_index_area_list.append(driving_area[i][0]+k)						
+								acc_index_area_list.append(driving_area[i][0]+k-1)						
 						else:
 							if(first_zero and not last_zero):
 								acc_area_list.append(acc_for_each_area[i][k])
-								acc_index_area_list.append(driving_area[i][0]+k)
+								acc_index_area_list.append(driving_area[i][0]+k-1)
 		return acc_area, acc_index_area
 	
 	def get_speed_increase_area(self, acc_area, acc_index_area):
@@ -531,7 +531,7 @@ class DataCalc:
 	def get_speed_inc_dec_end_time(self, index_area):
 		time_end = {}
 		for i in range(len(index_area)):
-			end_index = index_area[i][len(index_area[i])-1]
+			end_index = index_area[i][len(index_area[i])-1]-1
 			end_time = str(self.ws['I' + str(end_index)].value)
 			time_end[i] = end_time
 		return time_end
