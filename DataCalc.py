@@ -524,6 +524,8 @@ class DataCalc:
 		time_start = {}
 		for i in range(len(index_area)):
 			start_index = index_area[i][0]
+			if start_index != 0:
+				start_index = start_index-1
 			start_time = str(self.ws['I' + str(start_index)].value)
 			time_start[i] = start_time
 		return time_start
@@ -531,7 +533,7 @@ class DataCalc:
 	def get_speed_inc_dec_end_time(self, index_area):
 		time_end = {}
 		for i in range(len(index_area)):
-			end_index = index_area[i][len(index_area[i])-1]-1
+			end_index = index_area[i][len(index_area[i])-1]
 			end_time = str(self.ws['I' + str(end_index)].value)
 			time_end[i] = end_time
 		return time_end
@@ -540,6 +542,8 @@ class DataCalc:
 		time_interval = {}
 		for i in range(len(index_area)):
 			start_index = index_area[i][0]
+			if start_index != 0:
+				start_index = start_index-1
 			start_time = datetime.strptime(str(self.ws['I' + str(start_index)].value), '%Y-%m-%d %H:%M:%S')
 
 			end_index = index_area[i][len(index_area[i])-1]
@@ -551,6 +555,9 @@ class DataCalc:
 		speed_dict = {}
 		for i in range(len(index_area)):
 			start_index = index_area[i][0]
+			if start_index != 0:
+				start_index = start_index-1
+
 			start_speed = int(self.ws['F' + str(start_index)].value)
 
 			end_index = index_area[i][len(index_area[i])-1]
@@ -564,6 +571,9 @@ class DataCalc:
 		acc_dict = {}
 		for i in range(len(index_area)):
 			start_index = index_area[i][0]
+			if start_index != 0:
+				start_index = start_index-1
+
 			start_time = datetime.strptime(str(self.ws['I' + str(start_index)].value), '%Y-%m-%d %H:%M:%S')
 			start_speed = int(self.ws['F' + str(start_index)].value)
 
