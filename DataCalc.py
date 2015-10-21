@@ -524,8 +524,6 @@ class DataCalc:
 		time_start = {}
 		for i in range(len(index_area)):
 			start_index = index_area[i][0]
-			if start_index != 0:
-				start_index = start_index-1
 			start_time = str(self.ws['I' + str(start_index)].value)
 			time_start[i] = start_time
 		return time_start
@@ -533,7 +531,7 @@ class DataCalc:
 	def get_speed_inc_dec_end_time(self, index_area):
 		time_end = {}
 		for i in range(len(index_area)):
-			end_index = index_area[i][len(index_area[i])-1]
+			end_index = index_area[i][len(index_area[i])-1]-1
 			end_time = str(self.ws['I' + str(end_index)].value)
 			time_end[i] = end_time
 		return time_end
@@ -542,8 +540,6 @@ class DataCalc:
 		time_interval = {}
 		for i in range(len(index_area)):
 			start_index = index_area[i][0]
-			if start_index != 0:
-				start_index = start_index-1
 			start_time = datetime.strptime(str(self.ws['I' + str(start_index)].value), '%Y-%m-%d %H:%M:%S')
 
 			end_index = index_area[i][len(index_area[i])-1]
@@ -555,9 +551,6 @@ class DataCalc:
 		speed_dict = {}
 		for i in range(len(index_area)):
 			start_index = index_area[i][0]
-			if start_index != 0:
-				start_index = start_index-1
-
 			start_speed = int(self.ws['F' + str(start_index)].value)
 
 			end_index = index_area[i][len(index_area[i])-1]
@@ -571,9 +564,6 @@ class DataCalc:
 		acc_dict = {}
 		for i in range(len(index_area)):
 			start_index = index_area[i][0]
-			if start_index != 0:
-				start_index = start_index-1
-
 			start_time = datetime.strptime(str(self.ws['I' + str(start_index)].value), '%Y-%m-%d %H:%M:%S')
 			start_speed = int(self.ws['F' + str(start_index)].value)
 
@@ -586,4 +576,62 @@ class DataCalc:
 			acc_dict[i] = acc
 		return acc_dict
 			
-		
+	def get_slow_take_off_from_inc_acc(self, index_area, acc_threshold):
+		is_acc_take_off_dict = {}
+		for i in range(len(index_area)):
+			start_index = index_area[i][0]
+			start_time = datetime.strptime(str(self.ws['I' + str(start_index)].value), '%Y-%m-%d %H:%M:%S')
+			start_speed = int(self.ws['F' + str(start_index)].value)
+
+			end_index = index_area[i][len(index_area[i])-1]
+			end_time = datetime.strptime(str(self.ws['I' + str(end_index)].value), '%Y-%m-%d %H:%M:%S')
+			end_speed = int(self.ws['F' + str(end_index)].value)
+
+			time_interval = (end_time-start_time).seconds
+			acc = (end_speed-start_speed)/(3.6*time_interval)
+			
+			if(acc>0 and acc<=acc_threshold):
+				is_acc_take_off_dict[i] = 'Y'
+			else:
+				is_acc_take_off_dict[i] = 'N'
+		return is_acc_take_off_dict
+
+	def get_quick_slow_down_from_dec_acc(self, index_area, acc_threshold):
+		is_acc_quick_slow_down_dict = {}
+		for i in range(len(index_area)):
+			start_index = index_area[i][0]
+			start_time = datetime.strptime(str(self.ws['I' + str(start_index)].value), '%Y-%m-%d %H:%M:%S')
+			start_speed = int(self.ws['F' + str(start_index)].value)
+
+			end_index = index_area[i][len(index_area[i])-1]
+			end_time = datetime.strptime(str(self.ws['I' + str(end_index)].value), '%Y-%m-%d %H:%M:%S')
+			end_speed = int(self.ws['F' + str(end_index)].value)
+
+			time_interval = (end_time-start_time).seconds
+			acc = (end_speed-start_speed)/(3.6*time_interval)
+			
+			if(acc<=acc_threshold):
+				is_acc_quick_slow_down_dict[i] = 'Y'
+			else:
+				is_acc_quick_slow_down_dict[i] = 'N'
+		return is_acc_quick_slow_down_dict
+
+	def get_joggling_acc(self, index_area):
+		is_acc_joggling_dict = {}
+		for i in range(len(index_area)):
+			start_index = index_area[i][0]
+			start_time = datetime.strptime(str(self.ws['I' + str(start_index)].value), '%Y-%m-%d %H:%M:%S')
+			start_speed = int(self.ws['F' + str(start_index)].value)
+
+			end_index = index_area[i][len(index_area[i])-1]
+			end_time = datetime.strptime(str(self.ws['I' + str(end_index)].value), '%Y-%m-%d %H:%M:%S')
+			end_speed = int(self.ws['F' + str(end_index)].value)
+
+			time_interval = (end_time-start_time).seconds
+			acc = (end_speed-start_speed)/(3.6*time_interval)
+			
+			if(acc>=ACCE_ZERO_NEG and acc<=ACCE_ZERO_POS):
+				is_acc_joggling_dict[i] = 'Y'
+			else:
+				is_acc_joggling_dict[i] = 'N'
+		return is_acc_joggling_dict

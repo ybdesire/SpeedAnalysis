@@ -121,6 +121,8 @@ def main():
 	speed_inc_time_interval = data_calc_mgr.get_speed_inc_dec_time_interval(index_area_speed_inc)
 	speed_inc_speed_vari = data_calc_mgr.get_speed_inc_dec_speed(index_area_speed_inc)
 	speed_inc_acc = data_calc_mgr.get_speed_inc_dec_acc(index_area_speed_inc)
+	speed_inc_acc_slow_take_off = data_calc_mgr.get_slow_take_off_from_inc_acc(index_area_speed_inc, 0.15)
+	speed_inc_acc_joggling = data_calc_mgr.get_joggling_acc(index_area_speed_inc)
 	
 	speed_inc_wb = Workbook()
 	speed_inc_ws = speed_inc_wb.active
@@ -139,6 +141,10 @@ def main():
 	print_to_excel(speed_inc_ws, 'F', speed_inc_speed_vari)
 	speed_inc_ws['G1'] = 'ave_acc'
 	print_to_excel(speed_inc_ws, 'G', speed_inc_acc)
+	speed_inc_ws['H1'] = 'slow_take_off'
+	print_to_excel(speed_inc_ws, 'H', speed_inc_acc_slow_take_off)
+	speed_inc_ws['I1'] = 'speed_joggling'
+	print_to_excel(speed_inc_ws, 'I', speed_inc_acc_joggling)
 	
 	speed_inc_wb.save("speed_inc_state.xlsx")
 	print('\nspeed increase stat calculation ended.')
@@ -149,7 +155,9 @@ def main():
 	speed_dec_time_interval = data_calc_mgr.get_speed_inc_dec_time_interval(index_area_speed_dec)
 	speed_dec_speed_vari = data_calc_mgr.get_speed_inc_dec_speed(index_area_speed_dec)
 	speed_dec_acc = data_calc_mgr.get_speed_inc_dec_acc(index_area_speed_dec)
-	
+	speed_dec_acc_quick_slow_down = data_calc_mgr.get_quick_slow_down_from_dec_acc(index_area_speed_dec, -0.6)
+	speed_dec_acc_joggling = data_calc_mgr.get_joggling_acc(index_area_speed_dec)
+
 	speed_dec_wb = Workbook()
 	speed_dec_ws = speed_dec_wb.active
 	
@@ -167,6 +175,10 @@ def main():
 	print_to_excel(speed_dec_ws, 'F', speed_dec_speed_vari)
 	speed_dec_ws['G1'] = 'ave_acc'
 	print_to_excel(speed_dec_ws, 'G', speed_dec_acc)
+	speed_dec_ws['H1'] = 'quick_slow_down'
+	print_to_excel(speed_dec_ws, 'H', speed_dec_acc_quick_slow_down)
+	speed_dec_ws['I1'] = 'speed_joggling'
+	print_to_excel(speed_dec_ws, 'I', speed_dec_acc_joggling)
 	
 	speed_dec_wb.save("speed_dec_state.xlsx")
 	print('\nspeed decrease stat calculation ended.')
